@@ -1,0 +1,27 @@
+{
+  "name": "happening",
+  "version": "1.0.0",
+  "description": "app to list online events",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GaganSharmaGitHub/happening.git"
+  },
+  "author": "Gagan Sharma",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GaganSharmaGitHub/happening/issues"
+  },
+  "homepage": "https://github.com/GaganSharmaGitHub/happening#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  }
+}
