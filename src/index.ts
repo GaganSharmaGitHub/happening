@@ -1,15 +1,35 @@
-import express, {Application,Request,Response} from 'express'
-const env=require('dotenv')
-//routes
-//const posts=require('../routes/posts')
+import express, {Application,} from 'express'
+import morgan from 'morgan'
+import env from 'dotenv'
+import db = require('./configs/db')
 //load configs
 env.config({path:'./configs/config.env'})
+
+//connect db
+db.connectDB()
+
 const app:Application= express()
-const PORT= process.env.PORT||3000
-//app.use('/api/posts',posts)
-app.get('/',(a: Request,b: Response)=>{
-    
+
+//routes
+import {posts} from './routes/posts'
+
+//middlewares
+
+app.use(express.json)
+app.use(morgan('dev'))
+//mounting routers
+app.get('/',(r:any,q:any)=>{
+q.send('oyeees')
 })
-app.listen(PORT,()=>{
-    console.log(`Running on ${PORT}`)
+app.use('/api/v1/posts', posts)
+const PORT= process.env.PORT||4000
+
+const server= app.listen(PORT,()=>{
+    console.log(`Flying ✈  ✈  ✈  on ${PORT}`)
+})
+//handle rejections
+process.on('unhandledRejection',(err:Error,promise:Promise<any>)=>{
+    console.log(`error!! 😞😞 ${err.name}: ${err.message}`)
+    //close and exit
+    server.close(()=>process.exit(1))
 })
