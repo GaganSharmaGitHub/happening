@@ -1,11 +1,13 @@
 {
   "name": "happening",
   "version": "1.0.0",
-  "description": "app to list online events",
+  "description": "api for minimalistic social media app",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "node dist/index.js",
+    "dev":"nodemon src/index.ts",
+    "build":"tsc -p ."
   },
   "repository": {
     "type": "git",
@@ -18,7 +20,11 @@
   },
   "homepage": "https://github.com/GaganSharmaGitHub/happening#readme",
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "@types/express": "^4.17.7",
+    "@types/node": "^14.0.27",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
