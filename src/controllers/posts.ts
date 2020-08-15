@@ -1,71 +1,84 @@
-import express,{Request,Response,Router,NextFunction} from 'express'
-import {Post,PostModel} from '../models/posts'
+import {Request,Response,NextFunction} from 'express'
+import {PostModel} from '../models/posts'
+import {ErrorResponse} from '../utils/errorResponse'
+import {asyncHandler} from '../middlewares/async'
 //get all posts
-export const getPosts= async (request: Request,response: Response,next:NextFunction)=>{
-   try {
-    const posts= await PostModel.find()
-
-    response.status(200)
-    response.send({success:true,count:posts.length,data:posts})   
-   } catch (error) {
-    response.status(400).json({succes:false,reason:error})
-   }
-}
-//create a post
-export const makePosts= async (request: Request,response: Response,next:NextFunction)=>{
-    try {
-     
- const post= await PostModel.create(request.body)
- response.status(201).json({success: true,data:post})   
-    } catch (error) {
-        response.status(400).json({succes:false,reason:error})
+export const getPosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    
+    let reqQu={...request.query}
+    const fieldsToRemove:string[]=['select','sort','page','limit']
+    fieldsToRemove.forEach((k)=>{
+        delete reqQu[k]
+    })
+    //query
+    let query=PostModel.find(reqQu)
+    if(request.query.select){
+    const field=`${request.query.select}`.split(',').join(' ')
+    query=query.select(field)
     }
-}
+    //select fields
+    if(request.query.select){
+        const field=`${request.query.select}`.split(',').join(' ')
+        query=query.select(field)
+        }
+    //sort
+    if(request.query.sort){
+        const sorts=`${request.query.sort}`.split(',').join(' ')
+        query=query.sort(sorts)
+     }else{
+        query=query.sort('-createdAt')
+     }
+     //pagination
+     let pagination:any={};     
+     const page:number= parseInt(`${request.query.page}`)||1
+     const limit:number= parseInt(`${request.query.limit}`)||50
+     const skip:number=(page-1)*limit
+     const totalDocs:number=await PostModel.countDocuments()
+     query.skip(skip).limit(limit)
+     pagination.totalPages=Math.ceil(totalDocs/limit)
+     pagination.nextPage= skip<totalDocs? {page:page+1,limit}:undefined
+     pagination.previousPage= skip>0? {page:page-1,limit}:undefined
+     pagination.currentPage= skip>0? {page,limit}:undefined
+
+     //execute
+    const posts= await query
+    response.status(200)
+    response.send({success:true,count:posts.length,data:posts,pages:pagination})
+})
+//create a post
+export const makePosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
+    const post= await PostModel.create(request.body)
+    response.status(201).json({success: true,data:post})   
+   })
 //get one post
-export const getPost= async (request: Request,response: Response,next:NextFunction)=>{
-    try {
-        const post= await PostModel.findById(request.params.id)
-        if(!post){
-        response.status(400).json({succes:false,reason:'not found'})
-        return ;
-        }
-        response.status(200)
-        response.send({success:true,data:post})   
-       } catch (error) {
-        response.status(400).json({succes:false,reason:error.reason})
-       }
-}
+export const getPost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    const post= await PostModel.findById(request.params.id)
+    if(!post){
+        next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
+    response.status(200)
+    response.send({success:true,data:post})        
+})
 //delete one post
-export const deletePost=async(request: Request,response: Response,next:NextFunction)=>{
-    try {
-        const post= await PostModel.findByIdAndDelete(request.params.id,)
-        if(!post){
-        response.status(400).json({succes:false,reason:'not found'})
-        return ;
-        }
-        response.status(200)
-        response.send({success:true,data:{}})   
-       } catch (error) {
-        response.status(400).json({succes:false,reason:error.reason})
-       }
- }
+export const deletePost= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
+    const post= await PostModel.findByIdAndDelete(request.params.id,)
+    if(!post){
+        next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
+    response.status(200)
+    response.send({success:true,data:{}})   
+})
 //update post
 
-export const updatePost=async (request: Request,response: Response,next:NextFunction)=>{
-    try {
-        const post= await PostModel.findByIdAndUpdate(request.params.id,request.body,{
-            new:true,
-            runValidators:true,
-        }
-        )
-        if(!post){
-        response.status(400).json({succes:false,reason:'not found'})
-        return ;
-        }
-        response.status(200)
-        response.send({success:true,data:post})   
-       } catch (error) {
-        response.status(400).json({succes:false,reason:error.reason})
-       }
- 
-}
+export const updatePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    const post= await PostModel.findByIdAndUpdate(request.params.id,request.body,{
+        new:true,
+        runValidators:true,
+    }
+    )
+    if(!post){
+        next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
+    response.status(200)
+    response.send({success:true,data:post})    
+})

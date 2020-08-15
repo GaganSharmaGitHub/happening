@@ -16,7 +16,10 @@ const PostSchema:Schema = new Schema({
     image:{required:false,type:String,default:''},
     contents:{required:true,type:String},
     tags:{required:false,type:[String]},
-    likes:{required:false,type:Number},
+    likes:{required:false,type:Number,default:0},
     createdAt:{type:Date,default:Date.now}
+})
+PostSchema.pre('save',function(){
+
 })
 export const PostModel= mongoose.model('Post',PostSchema)

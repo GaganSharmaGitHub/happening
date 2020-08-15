@@ -1,29 +1,26 @@
-import express, {Application,} from 'express'
+import express, {Application, request, response,} from 'express'
 import morgan from 'morgan'
 import env from 'dotenv'
 import db = require('./configs/db')
+import {errorHandler} from './middlewares/errors'
+//import {seedData,clearData} from './test'
 //load configs
 env.config({path:'./configs/config.env'})
 //connect db
 db.connectDB()
-
 const app:Application= express()
+
 
 //routes
 import {posts} from './routes/posts'
-
 //middlewares
-
 app.use(morgan('dev'))
-//mounting routers
 app.use(express.json())
-
-app.get('/',(r:any,q:any)=>{
-q.send('oyeees')
-})
+console.log(__dirname)
 app.use('/api/v1/posts', posts)
 const PORT= process.env.PORT||4000
-
+//error handling
+app.use(errorHandler)
 const server= app.listen(PORT,()=>{
     console.log(`Flying ✈  ✈  ✈  on ${PORT}`)
 })
