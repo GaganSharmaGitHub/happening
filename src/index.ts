@@ -4,7 +4,6 @@ import env from 'dotenv'
 import db = require('./configs/db')
 //load configs
 env.config({path:'./configs/config.env'})
-
 //connect db
 db.connectDB()
 
@@ -15,9 +14,10 @@ import {posts} from './routes/posts'
 
 //middlewares
 
-app.use(express.json)
 app.use(morgan('dev'))
 //mounting routers
+app.use(express.json())
+
 app.get('/',(r:any,q:any)=>{
 q.send('oyeees')
 })
@@ -28,7 +28,7 @@ const server= app.listen(PORT,()=>{
     console.log(`Flying ✈  ✈  ✈  on ${PORT}`)
 })
 //handle rejections
-process.on('unhandledRejection',(err:Error,promise:Promise<any>)=>{
+process.on('unhandledRejection',(err:any,promise:any)=>{
     console.log(`error!! 😞😞 ${err.name}: ${err.message}`)
     //close and exit
     server.close(()=>process.exit(1))
