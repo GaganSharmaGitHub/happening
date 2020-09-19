@@ -5,9 +5,12 @@ console.log(d.length)
 
 export const seedData= async()=>{
     try{
-        await PostModel.create(d)
-        console.log('imported')
-        process.exit()
+      const h=  await PostModel.create(d)
+     if(h){
+        console.log('import')
+
+     }
+   //     process.exit()
     }catch(e){
         console.log(e)
     }
@@ -16,7 +19,7 @@ export const clearData= async()=>{
     try{
         await PostModel.deleteMany(()=>{})
         console.log('deleted')
-        process.exit()
+ //       process.exit()
     }catch(e){
         console.log(e)
     }

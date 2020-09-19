@@ -1,5 +1,5 @@
 import {Request,Response,NextFunction} from 'express'
-import {PostModel} from '../models/posts'
+import {PostModel,Post} from '../models/posts'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
 //get all posts
@@ -10,6 +10,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
     fieldsToRemove.forEach((k)=>{
         delete reqQu[k]
     })
+    reqQu.public='true';
     //query
     let query=PostModel.find(reqQu)
     if(request.query.select){
@@ -33,7 +34,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
      const page:number= parseInt(`${request.query.page}`)||1
      const limit:number= parseInt(`${request.query.limit}`)||50
      const skip:number=(page-1)*limit
-     const totalDocs:number=await PostModel.countDocuments()
+     const totalDocs:number= await PostModel.countDocuments()
      query.skip(skip).limit(limit)
      pagination.totalPages=Math.ceil(totalDocs/limit)
      pagination.nextPage= skip<totalDocs? {page:page+1,limit}:undefined
@@ -42,6 +43,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
 
      //execute
     const posts= await query
+    console.log(posts.length)
     response.status(200)
     response.send({success:true,count:posts.length,data:posts,pages:pagination})
 })
@@ -53,7 +55,7 @@ export const makePosts= asyncHandler(async (request: Request,response: Response,
 //get one post
 export const getPost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     const post= await PostModel.findById(request.params.id)
-    if(!post){
+    if(!post || !post.toObject().public){
         next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
     }
     response.status(200)
@@ -62,14 +64,26 @@ export const getPost= asyncHandler(async (request: Request,response: Response,ne
 //delete one post
 export const deletePost= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
     const post= await PostModel.findByIdAndDelete(request.params.id,)
+    
     if(!post){
         next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
     }
     response.status(200)
     response.send({success:true,data:{}})   
 })
+//uploadImage
+export const imageUploadPost= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
+console.log(request.body.files)
+console.log('ok')
+response.send(request.body.files?.length)
+    // const post= await PostModel.findByIdAndDelete(request.params.id,)
+    // if(!post){
+    //     next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    // }
+        // response.status(200)
+    // response.send({success:true,data:{}})   
+})
 //update post
-
 export const updatePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     const post= await PostModel.findByIdAndUpdate(request.params.id,request.body,{
         new:true,
