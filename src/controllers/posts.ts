@@ -1,5 +1,5 @@
 import {Request,Response,NextFunction} from 'express'
-import {PostModel,Post} from '../models/posts'
+import {PostModel} from '../models/posts'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
 //get all posts
@@ -11,6 +11,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
         delete reqQu[k]
     })
     reqQu.public='true';
+    console.log(reqQu)
     //query
     let query=PostModel.find(reqQu)
     if(request.query.select){
@@ -29,6 +30,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
      }else{
         query=query.sort('-createdAt')
      }
+     query.populate('author')
      //pagination
      let pagination:any={};     
      const page:number= parseInt(`${request.query.page}`)||1
@@ -47,19 +49,48 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
     response.status(200)
     response.send({success:true,count:posts.length,data:posts,pages:pagination})
 })
+
 //create a post
 export const makePosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
+    request.body.author=request.body.AuthorizedUser.id
     const post= await PostModel.create(request.body)
     response.status(201).json({success: true,data:post})   
    })
+
+export const likePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+  //  console.log(request.params.id)
+    const post= await PostModel.findByIdAndUpdate(request.params.id,{
+        $push:{likes:request.body.AuthorizedUser.id}
+    },
+    {
+        new:true,
+    }
+    )
+    response.status(200)
+    response.send({success:true,data:post}
+        )    
+})
+
+export const unlikePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+      const post= await PostModel.findByIdAndUpdate(request.params.id,{
+          $pull:{likes:request.body.AuthorizedUser.id}
+      },
+      {
+          new:true,
+      }
+      )
+      response.status(200)
+      response.send({success:true,data:post}
+          )    
+  })
 //get one post
 export const getPost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    const post= await PostModel.findById(request.params.id)
+    const post= await PostModel.findById(request.params.id).populate('author','name image')
     if(!post || !post.toObject().public){
         next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
     }
     response.status(200)
-    response.send({success:true,data:post})        
+    response.send({success:true,data:post,})        
 })
 //delete one post
 export const deletePost= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
@@ -76,15 +107,10 @@ export const imageUploadPost= asyncHandler(async(request: Request,response: Resp
 console.log(request.body.files)
 console.log('ok')
 response.send(request.body.files?.length)
-    // const post= await PostModel.findByIdAndDelete(request.params.id,)
-    // if(!post){
-    //     next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
-    // }
-        // response.status(200)
-    // response.send({success:true,data:{}})   
 })
 //update post
 export const updatePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    request.body.author=request.body.AuthorizedUser.id
     const post= await PostModel.findByIdAndUpdate(request.params.id,request.body,{
         new:true,
         runValidators:true,

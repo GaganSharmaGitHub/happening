@@ -19,6 +19,11 @@ const UserSchema:Schema = new Schema({
         select:false,
     },
     resetExpire:Date,
+    status:{default:'hey',required:false,type:String},
+    about:{required:false,type:String},
+    img:{required:false,type:String},
+    followers:{type:[{type:mongoose.Schema.Types.ObjectId,ref:'User',unique:true}],default:[],},
+
 })
 UserSchema.pre<any>('save', async function(next){
     const salt = await genSalt(10)

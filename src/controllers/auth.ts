@@ -1,5 +1,6 @@
 import {Request,Response,NextFunction} from 'express'
 import {UserModel} from '../models/users'
+import {PostModel} from '../models/posts'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
 
@@ -30,6 +31,9 @@ export const login= asyncHandler(async (request: Request,response: Response,next
         }
         sendTokenResp(user,200,response)
    })
+
+   //one user
+
 const sendTokenResp=(user:any,status:number,res:Response)=>{
     const token=user?.getJSONWToken()
     const options={

@@ -7,6 +7,7 @@ import { ErrorResponse } from '../utils/errorResponse'
 
 export const protect=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     let token
+    request.body.AuthorizedUser=null;
     if (request.headers.authorization && request.headers.authorization.startsWith('Bearer')) {
         token = request.headers.authorization.split(' ')[1]
     } else if(request.cookies.token){
@@ -17,9 +18,9 @@ export const protect=asyncHandler(async (request: Request,response: Response,nex
     }
     try{
         const decoded:any= verify(token, `${process.env.JWT_SECRET}`)
-        console.log(decoded)
-        request.body.userID=await UserModel.findById(decoded.id)
-        if(!request.body.userID){
+      //  console.log(decoded)
+        request.body.AuthorizedUser=await UserModel.findById(decoded.id)
+        if(!request.body.AuthorizedUser){
         return next(new ErrorResponse(401,'not authorized to access'))
         }
         next()
