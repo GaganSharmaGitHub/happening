@@ -9,13 +9,32 @@ const PostSchema:Schema = new Schema({
     image:{required:false,type:String,},
     contents:{required:true,type:String},
     tags:{required:false,type:[String]},
-    likes:{type:[{type:mongoose.Schema.Types.ObjectId,ref:'User'}],default:[],},
+    likes:{type:[
+      {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User',
+      }
+    ],
+        default:[],
+        unique:false,
+        required:true
+      },
     createdAt:{type:Date,default:Date.now},
     public:{type:Boolean,default:true},
 })
 PostSchema.pre<any>('save',function(){
-let extracted=`${this.contents}`.match(/#[\p{L}]+/ugi)
-let tag= new Set(this.tags.concat(extracted))
-this.tags=Array.from(tag)
+  if(this.isModified('contents')||this.isModified('tags')){
+    let extracted=`${this.contents}`.match(/#[\p{L}]+/ugi)
+    let tag= new Set(this.tags.concat(extracted))
+    console.log(tag)
+    this.tags=Array.from(tag)
+  }
+  if(this.isModified('likes')){
+  console.log(this.likes)
+ let l= new Set(this.likes)
+    
+ this.likes=Array.from(l)
+  }
+  
 })
 export const PostModel= mongoose.model('Post',PostSchema)

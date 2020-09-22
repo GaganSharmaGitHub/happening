@@ -6,7 +6,6 @@ import {asyncHandler} from '../middlewares/async'
 
 export const user= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     //check user
-    console.log(request.params.uid)
     const user= await UserModel.findById(request.params.uid)
     if(!user){
     return next(new ErrorResponse(404,`user not found`))
@@ -14,14 +13,15 @@ export const user= asyncHandler(async (request: Request,response: Response,next:
     response.send({success:true,data:user})
 
    })
-//my posts
-
-export const myPosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    let reqQu={
-        author:request.body.AuthorizedUser.id
-    }
+   export const lookup= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    let reqQu={...request.query}
+    const fieldsToRemove:string[]=['select','sort','page','limit',]
+    fieldsToRemove.forEach((k)=>{
+        delete reqQu[k]
+    })
+    console.log(reqQu)
     //query
-    let query=PostModel.find(reqQu)
+    let query=UserModel.find(reqQu)
     if(request.query.select){
     const field=`${request.query.select}`.split(',').join(' ')
     query=query.select(field)
@@ -38,11 +38,21 @@ export const myPosts= asyncHandler(async (request: Request,response: Response,ne
      }else{
         query=query.sort('-createdAt')
      }
+     //pagination
+     let pagination:any={};     
+     const page:number= parseInt(`${request.query.page}`)||1
+     const limit:number= parseInt(`${request.query.limit}`)||50
+     const skip:number=(page-1)*limit
+     query.skip(skip).limit(limit)
+     pagination.nextPage= {page:page+1,limit}
+     pagination.previousPage= skip>0? {page:page-1,limit}:undefined
+     pagination.currentPage= skip>0? {page,limit}:undefined
+
      //execute
-    const posts= await query
-    console.log(posts.length)
+    const users= await query
+    console.log(users.length)
     response.status(200)
-    response.send({success:true,count:posts.length,data:posts})
+    response.send({success:true,count:users.length,data:users,pages:pagination})
 })
 
 
@@ -64,7 +74,7 @@ export const follow= asyncHandler(async (request: Request,response: Response,nex
 export const unfollow= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     //  console.log(request.params.id)
       const post= await UserModel.findByIdAndUpdate(request.body.AuthorizedUser.id,{
-          $push:{followers:request.params.id}
+          $pull:{followers:request.params.id}
       },
       {
           new:true,
@@ -74,4 +84,24 @@ export const unfollow= asyncHandler(async (request: Request,response: Response,n
       response.send({success:true,data:post}
           )    
   })
-  
+
+  export const updateUser= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    let n={...request.body}
+    const fieldsToRemove:string[]=['email','password','createdAt','resetPasswordToken','resetExpire','followers']
+    fieldsToRemove.forEach((k)=>{
+        delete n[k]
+    })
+
+    const user= await UserModel.findByIdAndUpdate(request.body.AuthorizedUser.id,
+        n,
+        {
+        new:true,
+        runValidators:true,
+    }
+    )
+    if(!user){
+        next(new ErrorResponse(404,`Resource ${request.body.AuthorizedUser.id} not found`))
+    }
+    response.status(200)
+    response.send({success:true,data:user})    
+})

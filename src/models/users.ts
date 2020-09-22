@@ -1,6 +1,7 @@
 import mongoose,{Schema,Document} from 'mongoose'
 import {compare, genSalt, hash,} from 'bcryptjs'
 import { sign as jsonWTSign} from 'jsonwebtoken'
+import crypto from 'crypto'
 const UserSchema:Schema = new Schema({
     name:{required:true,type:String},
     email:{
@@ -22,13 +23,16 @@ const UserSchema:Schema = new Schema({
     status:{default:'hey',required:false,type:String},
     about:{required:false,type:String},
     img:{required:false,type:String},
-    followers:{type:[{type:mongoose.Schema.Types.ObjectId,ref:'User',unique:true}],default:[],},
-
+    followers:{type:[{type:mongoose.Schema.Types.ObjectId,ref:'User',}],default:[],},
+    dob:{type:Date,required:false}
 })
 UserSchema.pre<any>('save', async function(next){
+if(this.isModified('password')){
+    console.log('password changed')
     const salt = await genSalt(10)
     this.password= await hash(this.password,salt)
-
+}
+    next()
 })
 UserSchema.methods.getJSONWToken=function(){
     return jsonWTSign(
@@ -40,5 +44,13 @@ UserSchema.methods.getJSONWToken=function(){
 }
 UserSchema.methods.matchPassword=async function(entered:string){
     return await compare(entered,this.password)
+}
+
+UserSchema.methods.getResetToken=async function(){
+const tok=crypto.randomBytes(5).toString('hex').slice(0, 4)
+this.resetPasswordToken= crypto.createHash('sha256').update(tok).digest('hex')
+//set expiry
+this.resetExpire=Date.now()+10*60*1000
+return tok
 }
 export const UserModel= mongoose.model('User',UserSchema)

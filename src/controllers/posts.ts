@@ -4,9 +4,8 @@ import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
 //get all posts
 export const getPosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    
     let reqQu={...request.query}
-    const fieldsToRemove:string[]=['select','sort','page','limit']
+    const fieldsToRemove:string[]=['select','sort','page','limit',]
     fieldsToRemove.forEach((k)=>{
         delete reqQu[k]
     })
@@ -53,8 +52,11 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
 //create a post
 export const makePosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     request.body.author=request.body.AuthorizedUser.id
-    const post= await PostModel.create(request.body)
-    response.status(201).json({success: true,data:post})   
+   let {author,tags,title,contents}=request.body
+   tags=tags?tags:[]
+    const data= await PostModel.create({author,tags,title,contents,likes:[]})
+    
+    response.status(201).json({success: true,data})   
    })
 
 export const likePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
@@ -85,7 +87,7 @@ export const unlikePost= asyncHandler(async (request: Request,response: Response
   })
 //get one post
 export const getPost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    const post= await PostModel.findById(request.params.id).populate('author','name image')
+    const post= await PostModel.findById(request.params.id).populate('author').populate('likes')
     if(!post || !post.toObject().public){
         next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
     }
