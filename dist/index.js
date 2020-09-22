@@ -5,14 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var morgan_1 = __importDefault(require("morgan"));
-var dotenv_1 = __importDefault(require("dotenv"));
 var db = require("./configs/db");
 var errors_1 = require("./middlewares/errors");
 var cookie_parser_1 = __importDefault(require("cookie-parser"));
 var fileUp = require('express-fileupload');
 //import {seedData,clearData} from './test'
 //load configs
-dotenv_1.default.config({ path: './configs/config.env' });
+//env.config({path:'./configs/config.env'})
 //connect db
 db.connectDB();
 var app = express_1.default();

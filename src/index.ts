@@ -7,7 +7,7 @@ import cookieP from 'cookie-parser'
 const fileUp=require('express-fileupload');
 //import {seedData,clearData} from './test'
 //load configs
-env.config({path:'./configs/config.env'})
+//env.config({path:'./configs/config.env'})
 //connect db
 db.connectDB()
 const app:Application= express()
