@@ -14,7 +14,7 @@ export const protect=asyncHandler(async (request: Request,response: Response,nex
         token = request.cookies.token
     }
     if(!token){
-        return next(new ErrorResponse(401,'not authorized to access'))
+        return next(new ErrorResponse(401,'no authorization provided'))
     }
     try{
         const decoded:any= verify(token, `${process.env.JWT_SECRET}`)
@@ -25,7 +25,7 @@ export const protect=asyncHandler(async (request: Request,response: Response,nex
         }
         next()
     }catch(e){
-        return next(new ErrorResponse(401,'not authorized to access'))
+        return next(new ErrorResponse(401,'could not authorise'))
 
     }
    })

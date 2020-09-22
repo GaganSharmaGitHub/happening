@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import {register,login,forgotPassword} from '../controllers/auth'
+import {register,login,forgotPassword,resetPassword,changepassword} from '../controllers/auth'
 import {follow,unfollow,user,lookup,updateUser} from '../controllers/user'
 import {myFeed,myPosts} from '../controllers/feed'
 import {protect} from '../middlewares/auth'
@@ -9,6 +9,8 @@ router.put('/update',protect,updateUser)
 // register
 router.route('/register').post(register)
 router.route('/forgotpassword').put(forgotPassword)
+router.route('/resetpassword').put(resetPassword)
+router.route('/changepassword').put(protect,changepassword)
 //login
 router.route('/login').get(login)
 router.route('/myposts').get(protect,myPosts)

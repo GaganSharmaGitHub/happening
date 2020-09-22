@@ -46,11 +46,17 @@ UserSchema.methods.matchPassword=async function(entered:string){
     return await compare(entered,this.password)
 }
 
+UserSchema.methods.matchResetToken=async function(entered:string,corr:string){
+    return await compare(`${entered}`,corr)
+}
+
 UserSchema.methods.getResetToken=async function(){
 const tok=crypto.randomBytes(5).toString('hex').slice(0, 4)
-this.resetPasswordToken= crypto.createHash('sha256').update(tok).digest('hex')
+console.log(tok)
+const salt = await genSalt(10)
+this.resetPasswordToken= await hash(tok,salt)
 //set expiry
-this.resetExpire=Date.now()+10*60*1000
+this.resetExpire=Date.now()+10*60*60*1000
 return tok
 }
 export const UserModel= mongoose.model('User',UserSchema)

@@ -1,4 +1,5 @@
 import nm from 'nodemailer'
+import {template} from './template'
 export const mailsender=async (rec:string,cod:string)=>{
     var transporter = nm.createTransport({
         service: 'gmail',
@@ -11,8 +12,8 @@ export const mailsender=async (rec:string,cod:string)=>{
       var mailOptions = {
         from: `${process.env.EMAIL_SENDER}`,
         to: rec,
-        subject: 'Success maje aaa gaye',
-        text: 'That was easy!'+cod
+        subject: 'Reset Password',
+        html: template(cod)
       };
       let t= await transporter.sendMail(mailOptions) 
       return t;     
