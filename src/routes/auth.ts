@@ -12,7 +12,7 @@ router.route('/forgotpassword').put(forgotPassword)
 router.route('/resetpassword').put(resetPassword)
 router.route('/changepassword').put(protect,changepassword)
 //login
-router.route('/login').get(login)
+router.route('/login').put(login)
 router.route('/myposts').get(protect,myPosts)
 router.route('/myfeed').get(protect,myFeed)
 router.route('/lookup/').get(lookup)
