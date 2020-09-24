@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "comp": "tsc -p ."
+    "build": "tsc -p ."
   },
   "repository": {
     "type": "git",
@@ -31,14 +31,14 @@
     "@types/morgan": "^1.9.1",
     "@types/node": "^14.0.27",
     "@types/nodemailer": "^6.4.0",
-    "nodemon": "^2.0.4",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.9.7"
+    "nodemon": "^2.0.4"
   },
   "dependencies": {
+    "typescript": "^3.9.7",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.5",
     "dotenv": "^8.2.0",
+    "ts-node": "^8.10.2",
     "morgan": "^1.10.0",
     "express": "^4.17.1",
     "express-fileupload": "^1.2.0",
