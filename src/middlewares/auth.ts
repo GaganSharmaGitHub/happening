@@ -21,11 +21,11 @@ export const protect=asyncHandler(async (request: Request,response: Response,nex
       //  console.log(decoded)
         request.body.AuthorizedUser=await UserModel.findById(decoded.id)
         if(!request.body.AuthorizedUser){
-        return next(new ErrorResponse(401,'not authorized to access'))
+        return next(new ErrorResponse(401,'not authorized to access :('))
         }
         next()
     }catch(e){
-        return next(new ErrorResponse(401,'could not authorise'))
+        return next(new ErrorResponse(401,'could not authorise :('))
 
     }
    })
