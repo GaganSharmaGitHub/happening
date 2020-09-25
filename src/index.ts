@@ -4,16 +4,15 @@ import env from 'dotenv'
 import db = require('./configs/db')
 import {errorHandler} from './middlewares/errors'
 import cookieP from 'cookie-parser'
-import {asyncHandler} from './middlewares/async'
 const fileUp=require('express-fileupload');
 //import {seedData,clearData} from './test'
 //load configs
-//env.config({path:'./configs/config.env'})
+//if(!process.env.MONGO_URI){
+  //  env.config({path:'./configs/config.env'})
+//}
 //connect db
 db.connectDB()
 const app:Application= express()
-
-
 //routes
 import {posts} from './routes/posts'
 import {userR} from './routes/auth'

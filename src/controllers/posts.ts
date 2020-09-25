@@ -2,6 +2,7 @@ import {Request,Response,NextFunction} from 'express'
 import {PostModel} from '../models/posts'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
+const cloudinary=require('cloudinary')
 //get all posts
 export const getPosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     let reqQu={...request.query}
@@ -52,9 +53,20 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
 //create a post
 export const makePosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     request.body.author=request.body.AuthorizedUser.id
-   let {author,tags,title,contents}=request.body
+   let {author,tags,title,contents,}=request.body
+   let image:any=request.body.image
    tags=tags?tags:[]
-    const data= await PostModel.create({author,tags,title,contents,likes:[]})
+   if(image){
+   let resp= await cloudinary.v2.uploader.upload(image, 
+    { folder: `posts` },);
+    if(resp.url){
+        image=resp.url;
+    }else{
+     image=undefined;
+    }
+   }
+  
+    const data= await PostModel.create({author,tags,title,contents,likes:[],image})
     
     response.status(201).json({success: true,data})   
    })

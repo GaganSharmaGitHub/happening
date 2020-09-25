@@ -3,7 +3,7 @@ import {UserModel} from '../models/users'
 import {PostModel} from '../models/posts'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
-
+const cloudinary=require('cloudinary')
 export const user= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     //check user
     const user= await UserModel.findById(request.params.uid)
@@ -104,4 +104,28 @@ export const unfollow= asyncHandler(async (request: Request,response: Response,n
     }
     response.status(200)
     response.send({success:true,data:user})    
+})
+
+export const updateImage= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    let image:String=request.body.image
+ let resp= await cloudinary.v2.uploader.upload(image, 
+  { public_id: `users/${request.body.AuthorizedUser.id}` },);
+
+  if(resp.url){
+    const user= await UserModel.findByIdAndUpdate(request.body.AuthorizedUser.id,
+        {img:resp.url},
+        {
+        new:true,
+        runValidators:true,
+    }
+    )
+    if(!user){
+        next(new ErrorResponse(404,`User ${request.body.AuthorizedUser.id} not found`))
+    }
+    response.status(200)
+    response.send({success:true,data:user})
+  }else{
+   next(new ErrorResponse(505,`Failed to uplooad ${resp.reason}`))
+  }
+
 })
