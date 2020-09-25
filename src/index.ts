@@ -31,18 +31,6 @@ app.use('/api/v1/posts', posts)
 app.use('/api/v1/users', userR)
 const PORT= process.env.PORT||4500
 
-app.get('/:P',asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    response.status(404).send({success:false,reason:'route not found'})
-}))
-app.put('/:P',asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    response.status(404).send({success:false,reason:'route not found'})
-}))
-app.post('/:P',asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    response.status(404).send({success:false,reason:'route not found'})
-}))
-app.delete('/:P',asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    response.status(404).send({success:false,reason:'route not found'})
-}))
 //error handling
 app.use(errorHandler)
 const server= app.listen(PORT,()=>{
