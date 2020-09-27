@@ -7,7 +7,7 @@ import {asyncHandler} from '../middlewares/async'
   
 export const myFeed= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     //find user
-        const user:any= await UserModel.findById(request.body.AuthorizedUser.id)
+        const user:any= await UserModel.findById(request.body.AuthorizedUser.id).populate('followers')
         if(!user){
         return next(new ErrorResponse(404,`user not found`))
         }
@@ -20,7 +20,7 @@ export const myFeed= asyncHandler(async (request: Request,response: Response,nex
         fieldsToRemove.forEach((k)=>{
             delete reqQu[k]
         })
-         reqQu.$or=followers.map((k:any)=>{return {author:k}})
+         reqQu.$or=followers.map((k:any)=>{return {author:k._id}})
         //query
         let query=PostModel.find(reqQu).populate('author')
         if(request.query.select){

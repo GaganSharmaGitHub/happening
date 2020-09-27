@@ -6,7 +6,7 @@ import {asyncHandler} from '../middlewares/async'
 const cloudinary=require('cloudinary')
 export const user= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     //check user
-    const user= await UserModel.findById(request.params.uid)
+    const user= await UserModel.findById(request.params.uid).populate('followers')
     if(!user){
     return next(new ErrorResponse(404,`user not found`))
     }
