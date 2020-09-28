@@ -11,7 +11,7 @@ export const myFeed= asyncHandler(async (request: Request,response: Response,nex
         if(!user){
         return next(new ErrorResponse(404,`user not found`))
         }
-        const followers:any=user.followers
+        const followers:any=[request.body.AuthorizedUser.id,...user.followers]
         if(!followers||!Array.isArray(followers)|| !followers.length){
             response.send({success:true,data:user,posts:{length:0,data:[]}})
         }
