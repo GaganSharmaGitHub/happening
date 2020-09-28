@@ -11,7 +11,7 @@ export const myFeed= asyncHandler(async (request: Request,response: Response,nex
         if(!user){
         return next(new ErrorResponse(404,`user not found`))
         }
-        const followers:any=[request.body.AuthorizedUser.id,...user.followers]
+        const followers:any=user.followers
         if(!followers||!Array.isArray(followers)|| !followers.length){
             response.send({success:true,data:user,posts:{length:0,data:[]}})
         }
@@ -20,7 +20,7 @@ export const myFeed= asyncHandler(async (request: Request,response: Response,nex
         fieldsToRemove.forEach((k)=>{
             delete reqQu[k]
         })
-         reqQu.$or=followers.map((k:any)=>{return {author:k._id}})
+         reqQu.$or=[...followers.map((k:any)=>{return {author:k._id}}),{author:request.body.AuthorizedUser.id}]
         //query
         let query=PostModel.find(reqQu).populate('author')
         if(request.query.select){
