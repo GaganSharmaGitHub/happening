@@ -8,7 +8,7 @@ const fileUp=require('express-fileupload');
 //import {seedData,clearData} from './test'
 //load configs
 //if(!process.env.MONGO_URI){
-  //  env.config({path:'./configs/config.env'})
+    env.config({path:'./configs/config.env'})
 //}
 //connect db
 db.connectDB()
