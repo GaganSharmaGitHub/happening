@@ -84,3 +84,12 @@ export const myPosts= asyncHandler(async (request: Request,response: Response,ne
     response.status(200)
     response.send({success:true,count:posts.length,data:posts})
 })
+
+export const trendingtags= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    //query
+    let query=PostModel.aggregate([ { $unwind: "$tags" },  { $sortByCount: "$tags" } ])   //execute
+    const tags= await query
+    console.log(tags.length)
+    response.status(200)
+    response.send({success:true,count:tags.length,tags})
+})

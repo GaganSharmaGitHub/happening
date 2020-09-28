@@ -16,6 +16,7 @@ const app:Application= express()
 //routes
 import {posts} from './routes/posts'
 import {userR} from './routes/auth'
+import {trendRoute} from './routes/trending'
 //middlewares
 app.use(morgan('dev'))
 app.use(express.json())
@@ -28,6 +29,7 @@ app.use(cookieP())
 
 app.use('/api/v1/posts', posts)
 app.use('/api/v1/users', userR)
+app.use('/api/v1/trending', trendRoute)
 const PORT= process.env.PORT||4500
 
 //error handling

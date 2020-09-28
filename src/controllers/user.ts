@@ -59,7 +59,7 @@ export const user= asyncHandler(async (request: Request,response: Response,next:
 export const follow= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     //  console.log(request.params.id)
       const post= await UserModel.findByIdAndUpdate(request.body.AuthorizedUser.id,{
-          $push:{followers:request.params.id}
+        $addToSet:{followers:request.params.id}
       },
       {
           new:true,

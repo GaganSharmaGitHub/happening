@@ -74,7 +74,7 @@ export const makePosts= asyncHandler(async (request: Request,response: Response,
 export const likePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
   //  console.log(request.params.id)
     const post= await PostModel.findByIdAndUpdate(request.params.id,{
-        $push:{likes:request.body.AuthorizedUser.id}
+        $addToSet:{likes:request.body.AuthorizedUser.id}
     },
     {
         new:true,
