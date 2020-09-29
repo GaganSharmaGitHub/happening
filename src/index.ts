@@ -7,9 +7,9 @@ import cookieP from 'cookie-parser'
 const fileUp=require('express-fileupload');
 //import {seedData,clearData} from './test'
 //load configs
-//if(!process.env.MONGO_URI){
+if(!process.env.MONGO_URI){
     env.config({path:'./configs/config.env'})
-//}
+}
 //connect db
 db.connectDB()
 const app:Application= express()
