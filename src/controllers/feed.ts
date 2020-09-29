@@ -23,7 +23,10 @@ export const myFeed= asyncHandler(async (request: Request,response: Response,nex
          reqQu.$or=[...followers.map((k:any)=>{return {author:k._id}}),{author:request.body.AuthorizedUser.id}]
         //query
         console.log(reqQu)
-        let query=PostModel.find(reqQu).populate('author')
+        let query=PostModel.find(reqQu).populate('likes').populate('author').populate({
+            path: 'repost',
+            populate: { path: 'author' }
+          })
         if(request.query.select){
         const field=`${request.query.select}`.split(',').join(' ')
         query=query.select(field)
@@ -80,7 +83,10 @@ export const myPosts= asyncHandler(async (request: Request,response: Response,ne
         query=query.sort('-createdAt')
      }
      //execute
-    const posts= await query
+    const posts= await query.populate('likes').populate('author').populate({
+        path: 'repost',
+        populate: { path: 'author' }
+      })
     console.log(posts.length)
     response.status(200)
     response.send({success:true,count:posts.length,data:posts})
@@ -88,9 +94,33 @@ export const myPosts= asyncHandler(async (request: Request,response: Response,ne
 
 export const trendingtags= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     //query
-    let query=PostModel.aggregate([ { $unwind: "$tags" },  { $sortByCount: "$tags" } ])   //execute
+    let query=PostModel.aggregate([ { $unwind: "$tags" },
+     
+    {   
+        $sort: {"likescount":1} 
+    },
+    { $sortByCount: "$tags" } ])   //execute
     const tags= await query
     console.log(tags.length)
     response.status(200)
     response.send({success:true,count:tags.length,tags})
+})
+export const trendingposts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    //query
+    let query=PostModel.aggregate([{
+        $addFields: { likescount: {$size: { "$ifNull": [ "$likes", [] ] } } }
+    }, 
+    {   
+        $sort: {"likescount":1} 
+    },
+    { $limit : parseInt(`${request.query.limit}`)||10 },
+    {
+         $lookup: {from: 'users', localField: 'author', foreignField: '_id', as: 'author'}
+    ,},
+])
+       //execute
+    const posts= await query
+    
+    response.status(200)
+    response.send({success:true,count:posts.length,posts})
 })

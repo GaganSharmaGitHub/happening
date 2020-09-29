@@ -5,6 +5,9 @@ const PostSchema:Schema = new Schema({
       type:mongoose.Schema.Types.ObjectId,
       ref:'User',
     },
+    repost:{required:false,
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'Post', },
     title:{required:false,type:String},
     image:{required:false,type:String,},
     contents:{required:true,type:String},
@@ -25,15 +28,8 @@ const PostSchema:Schema = new Schema({
 PostSchema.pre<any>('save',function(){
   if(this.isModified('contents')||this.isModified('tags')){
     let extracted=`${this.contents}`.match(/#[\p{L}]+/ugi)
-    let tag= new Set(this.tags.concat(extracted))
-    console.log(tag)
+    let tag= new Set(extracted)
     this.tags=Array.from(tag)
-  }
-  if(this.isModified('likes')){
-  console.log(this.likes)
- let l= new Set(this.likes)
-    
- this.likes=Array.from(l)
   }
   
 })

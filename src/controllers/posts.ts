@@ -3,6 +3,10 @@ import {PostModel} from '../models/posts'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
 const cloudinary=require('cloudinary')
+const populatePost=(k:any)=>k.populate('likes').populate('author').populate({
+    path: 'repost',
+    populate: { path: 'author' }
+  })
 //get all posts
 export const getPosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     let reqQu={...request.query}
@@ -30,7 +34,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
      }else{
         query=query.sort('-createdAt')
      }
-     query.populate('author')
+     query=populatePost(query)
      //pagination
      let pagination:any={};     
      const page:number= parseInt(`${request.query.page}`)||1
@@ -53,7 +57,7 @@ export const getPosts= asyncHandler(async (request: Request,response: Response,n
 //create a post
 export const makePosts= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     request.body.author=request.body.AuthorizedUser.id
-   let {author,tags,title,contents,}=request.body
+   let {author,tags,title,contents,repost}=request.body
    let image:any=request.body.image
    tags=tags?tags:[]
    if(image){
@@ -66,7 +70,7 @@ export const makePosts= asyncHandler(async (request: Request,response: Response,
     }
    }
   
-    const data= await PostModel.create({author,tags,title,contents,likes:[],image})
+    const data= await PostModel.create({author,tags,title,contents,likes:[],image,repost})
     
     response.status(201).json({success: true,data})   
    })
@@ -99,7 +103,7 @@ export const unlikePost= asyncHandler(async (request: Request,response: Response
   })
 //get one post
 export const getPost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    const post= await PostModel.findById(request.params.id).populate('author').populate('likes')
+    const post= await populatePost(PostModel.findById(request.params.id))
     if(!post || !post.toObject().public){
         next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
     }
