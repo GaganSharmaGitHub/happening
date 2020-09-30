@@ -1,6 +1,6 @@
 import {Router} from 'express'
 import {getPost,getPosts,deletePost,makePosts,
-    updatePost,imageUploadPost,likePost,unlikePost} from '../controllers/posts'
+    updatePost,likePost,unlikePost} from '../controllers/posts'
 import {protect} from '../middlewares/auth'
 const router:Router=Router()
 //all posts
@@ -11,8 +11,6 @@ router.get('/:id',getPost)
 router.put('/:id/like',protect,likePost)
 //like post
 router.put('/:id/unlike',protect,unlikePost)
-//upload an image 
-router.put('/:id/uploadImage',protect,imageUploadPost)
 //edit post
 router.put('/:id',protect,updatePost,)
 //delete one post
