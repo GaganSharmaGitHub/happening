@@ -13,6 +13,15 @@ export const user= asyncHandler(async (request: Request,response: Response,next:
     response.send({success:true,data:user})
 
    })
+   export const basicinfo= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
+    //check user
+    const user= await UserModel.findById(request.params.uid)
+    if(!user){
+    return next(new ErrorResponse(404,`user not found`))
+    }
+    response.send({success:true,data:user})
+
+   })
    export const lookup= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     let reqQu={...request.query}
     const fieldsToRemove:string[]=['select','sort','page','limit',]

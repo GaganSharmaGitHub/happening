@@ -111,9 +111,7 @@ export const trendingposts= asyncHandler(async (request: Request,response: Respo
         $sort: {"likescount":-1} 
     },
     { $limit : parseInt(`${request.query.limit}`)||10 },
-    {
-         $lookup: {from: 'users', localField: 'author', foreignField: '_id', as: 'author'}
-    ,},
+    
 ])
        //execute
     const posts= await query
