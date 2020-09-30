@@ -96,9 +96,6 @@ export const trendingtags= asyncHandler(async (request: Request,response: Respon
     //query
     let query=PostModel.aggregate([ { $unwind: "$tags" },
      
-    {   
-        $sort: {"likescount":1} 
-    },
     { $sortByCount: "$tags" } ])   //execute
     const tags= await query
     console.log(tags.length)
@@ -111,7 +108,7 @@ export const trendingposts= asyncHandler(async (request: Request,response: Respo
         $addFields: { likescount: {$size: { "$ifNull": [ "$likes", [] ] } } }
     }, 
     {   
-        $sort: {"likescount":1} 
+        $sort: {"likescount":-1} 
     },
     { $limit : parseInt(`${request.query.limit}`)||10 },
     {
