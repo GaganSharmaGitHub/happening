@@ -112,7 +112,7 @@ export const getPost= asyncHandler(async (request: Request,response: Response,ne
 })
 //delete one post
 export const deletePost= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
-    const post= await PostModel.findByIdAndDelete(request.params.id,)
+    const post= await PostModel.findOneAndDelete({_id:request.params.id,author:request.body.author},)
     
     if(!post){
         next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
@@ -123,7 +123,7 @@ export const deletePost= asyncHandler(async(request: Request,response: Response,
 //update post
 export const updatePost= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     request.body.author=request.body.AuthorizedUser.id
-    const post= await PostModel.findByIdAndUpdate(request.params.id,request.body,{
+    const post= await PostModel.findOneAndUpdate({_id:request.params.id,author:request.body.author},request.body,{
         new:true,
         runValidators:true,
     }
