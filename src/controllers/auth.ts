@@ -21,6 +21,7 @@ export const login= asyncHandler(async (request: Request,response: Response,next
     return    next(new ErrorResponse(400,`enter email and password`))
     }
     //check user
+    
     const user:any= await UserModel.findOne({email}).select('+password')
     if(!user){
     return next(new ErrorResponse(404,`user not found`))
