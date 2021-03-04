@@ -112,6 +112,8 @@ export const getPost= asyncHandler(async (request: Request,response: Response,ne
 })
 //delete one post
 export const deletePost= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
+    request.body.author=request.body.AuthorizedUser.id
+  
     const post= await PostModel.findOneAndDelete({_id:request.params.id,author:request.body.author},)
     
     if(!post){

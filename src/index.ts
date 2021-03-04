@@ -6,7 +6,7 @@ import env from 'dotenv'
 import db = require('./configs/db')
 import {errorHandler} from './middlewares/errors'
 import cookieP from 'cookie-parser'
-import * as k from 'jsonwebtoken'
+import {Message} from './interfaces/message'
 const fileUp=require('express-fileupload');
 //import {seedData,clearData} from './test'
 //load configs
@@ -22,6 +22,8 @@ import {userR} from './routes/auth'
 import {trendRoute} from './routes/trending'
 import {chatroom} from './routes/chatRoom'
 import { protectSocket } from './middlewares/auth';
+import { addMessage } from './controllers/messages';
+import { messageRouter } from './routes/message';
 //middlewares
 app.use(morgan('dev'))
 app.use(express.json())
@@ -36,6 +38,7 @@ app.use('/api/v1/posts', posts)
 app.use('/api/v1/users', userR)
 app.use('/api/v1/chatroom', chatroom)
 app.use('/api/v1/trending', trendRoute)
+app.use('/api/v1/message', messageRouter)
 
 
 const PORT= process.env.PORT||4500
@@ -56,26 +59,19 @@ chatio.use(protectSocket)
  chatio.on('connection', (socket:Socket) => {
    let user=(socket.client.request.headers.AuthorizedUser as any);
   
- socket.join(`to ${user._id}`)
-  chatio.emit('message', `${(socket.client.request.headers.AuthorizedUser as any).name} joined` );   
+    socket.on('chat-message', (message:any) =>{
+      try{
+        const messageInt:Message=message;
+        messageInt.from=user._id
+        messageInt.createdAt=Date.now()
+        messageInt.type=messageInt.type||'text'
+        chatio.to(`${messageInt.room}`).emit(`chat-message`,messageInt)
+          addMessage(messageInt)
+      }catch(e){
 
-  socket.on('message', (message:any) =>     {
-    const {content}= message;
-    console.log(k.sign(
-      {
-          id: message.to},
-          `${process.env.JWT_SECRET}`,
-          {expiresIn:`${process.env.JWT_EXP}`,}
-          ))
-    
-chatio.to(`to ${message.to}`).emit(`message`,
-{
-  content,
-  sender:user,
-  from:user._id,
-})
-    //  chatio.emit('message', `${user.name} said ${message}` );   
-  });
+      }
+  }
+  );
 })
 server.listen(PORT,()=>{
     console.log(`Flying ✈  ✈  ✈  on ${PORT}`)

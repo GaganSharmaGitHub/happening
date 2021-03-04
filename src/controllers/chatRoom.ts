@@ -1,7 +1,20 @@
 import {Request,Response,NextFunction} from 'express'
 import {ChatModel} from '../models/chatRooms'
+import {Document} from 'mongoose'
 import {ErrorResponse} from '../utils/errorResponse'
 import {asyncHandler} from '../middlewares/async'
+
+export const myChatRoomsArray=async (uid:string):Promise<string[]>=> {
+    let toSend:string[]=[];
+  const k= await ChatModel.find({members: { "$in" : [uid]}} );
+  const blocked:any[]=(k as any).blockedBy ||[];
+k.map((doc:Document)=>{
+if(!blocked.includes(uid)){
+toSend.push(`${doc._id}`)
+}
+})
+    return toSend;
+}
 
 export const myChatRooms=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
     let reqQu={...request.query}
@@ -38,19 +51,67 @@ export const myChatRooms=asyncHandler(async (request: Request,response: Response
     response.send({success:true,count:chats.length,data:chats,pages:pagination})
 })
 
+
+
 //create room
 export const createRoom= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{     
     request.body.author=request.body.AuthorizedUser.id
-   let {author,otheruser}=request.body
-   
-    const find= await ChatModel.find({members:[author,otheruser].sort()})  
-   if(find){
-    response.status(401).json({success: false,reason:'chat room exists'})
-   }else{
-    const data= await ChatModel.create({members:[author,otheruser].sort})  
-
+   let {author,otherusers,title}=request.body
+   let users=[]
+   users.push(author)
+  users= users.concat(otherusers)
+   console.log(users)
+    const data= await ChatModel.create({members:users,title})  
     response.status(201).json({success: true,data})   
-}})
+})
+
+//join room
+export const addToRoom=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    request.body.author=request.body.AuthorizedUser.id
+    let {author,otherusers}=request.body
+    
+    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id,members: { "$in" : [request.body.AuthorizedUser.id]}},
+    { $addToSet: { members: { $each: otherusers } } },{new:true,})
+      
+    if(!chat){
+        return next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
+      response.status(200)
+      response.send({success:true,data:chat}
+          )    
+  })
+
+
+//join room
+export const joinRoom=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id},{
+        $addToSet:{members:request.body.AuthorizedUser.id}
+      },{new:true,})
+      
+    if(!chat){
+        return next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
+      response.status(200)
+      response.send({success:true,data:chat}
+          )    
+  })
+
+
+//leave room
+export const leaveRoom=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
+    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id},{
+        $pullAll:{members:request.body.AuthorizedUser.id}
+      },{new:true,})
+      
+    if(!chat){
+        return next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
+      response.status(200)
+      response.send({success:true,data:chat}
+          )    
+  })
+
+
 
 //get a room
 export const getRoom=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
@@ -68,14 +129,17 @@ export const getRoom=asyncHandler(async (request: Request,response: Response,nex
 
 //block a room
    export const block=asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    //  console.log(request.params.id)
-    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id,members:request.body.AuthorizedUser.id},{
+    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id},{
         $addToSet:{blockedBy:request.body.AuthorizedUser.id}
       },
       {
           new:true,
       }
       )
+      
+    if(!chat){
+        return next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
       response.status(200)
       response.send({success:true,data:chat}
           )    
@@ -83,13 +147,17 @@ export const getRoom=asyncHandler(async (request: Request,response: Response,nex
 
   //unblock room
   export const unblock= asyncHandler(async (request: Request,response: Response,next:NextFunction)=>{
-    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id,members:request.body.AuthorizedUser.id},{
-        $pull:{blockedBy:request.body.AuthorizedUser.id}
+    const chat= await ChatModel.findOneAndUpdate({_id:request.params.id,},{
+        $pullAll:{blockedBy:request.body.AuthorizedUser.id}
     },
     {
         new:true,
     }
     )
+    
+    if(!chat){
+        return next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+    }
     response.status(200)
     response.send({success:true,data:chat}
         )    
@@ -97,10 +165,10 @@ export const getRoom=asyncHandler(async (request: Request,response: Response,nex
 
 //delete one chat
 export const deleteChat= asyncHandler(async(request: Request,response: Response,next:NextFunction)=>{
-    const chat= await ChatModel.findOneAndDelete({_id:request.params.id,members:request.body.author},)
+    const chat= await ChatModel.findOneAndDelete({_id:request.params.id,},)
     
     if(!chat){
-        next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
+        return next(new ErrorResponse(404,`Resource ${request.params.id} not found`))
     }
     response.status(200)
     response.send({success:true,data:{}})   

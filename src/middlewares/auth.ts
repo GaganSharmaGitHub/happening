@@ -6,6 +6,7 @@ import {Request,Response,NextFunction} from 'express'
 import { ErrorResponse } from '../utils/errorResponse'
 import { Socket } from 'socket.io'
 import { ExtendedError } from 'socket.io/dist/namespace'
+import { myChatRoomsArray } from '../controllers/chatRoom'
 
 export const protectSocket=async (socket:Socket, next:(err?: ExtendedError) => void)=>{
 let token;
@@ -15,10 +16,21 @@ if (socket.request.headers.authorization && socket.request.headers.authorization
     
     try{
         const decoded:any= verify(token, `${process.env.JWT_SECRET}`)
-      socket.client.request.headers.AuthorizedUser=(await UserModel.findById(decoded.id))?.toJSON()
-      if(!socket.request.headers.AuthorizedUser){
+     const authorizedUser=(await UserModel.findById(decoded.id))
+      if(!authorizedUser){
         return next(new ErrorResponse(401,'not authorized to access :('))
         }
+        socket.client.request.headers.AuthorizedUser= authorizedUser.toJSON()
+        const myRooms= await myChatRoomsArray(decoded.id)
+      socket.client.request.headers.rooms=JSON.stringify((myRooms))
+myRooms.map((roomid:string)=>{
+    socket.join(roomid)
+    socket.to(roomid).emit('joined',{
+        content:`${(authorizedUser as any).name} joined`,
+        user:authorizedUser,
+    })
+}
+)
      return   next()
     }catch(e){
         return next(new ErrorResponse(401,'could not authorise :('))
